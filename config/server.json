@@ -1,0 +1,8 @@
+{
+	"interval":2000,
+	"vmCount":6,
+	"cpu-low":10,
+	"cpu-high":70,
+	"memory-low":50,
+	"memory-high":90
+}
