@@ -4,5 +4,13 @@
 	"cpu-low":10,
 	"cpu-high":70,
 	"memory-low":50,
-	"memory-high":90
+	"memory-high":90,
+	"vmList":[
+		"vm0",
+		"vm1",
+		"vm2",
+		"vm3",
+		"vm4",
+		"vm5"
+	]
 }

@@ -1,17 +1,22 @@
-net = require('net');
-fs = require('fs');
+const net = require('net');
+const exec = require('child_process').spawn;
+const fs = require('fs');
 _ = require('underscore');
 
 var config = JSON.parse(fs.readFileSync(__dirname + '/config/server.json', 'utf8'));
 
 
-var clientArray = new Array(config.vmCount);
+var clientArray = {};
+_.each(config.vmList, function(e, i, a){
+	clientArray[e] = {
+		name:e,
+		socket:null,
+		lastusage:{},
+		refresh:Date.now();
+	};
+});
 
 var makeClient = function(socket){
-	socket.on('disconnect', disconnectSocket);
-	socket.on('end', closeSocket);
-	socket.on('readable', readSocket);
-	socket.on('error', errorSocket);
 	var client = {};
 	client.socket = socket;
 	clientArray.push(client);
@@ -19,8 +24,14 @@ var makeClient = function(socket){
 };
 
 var server = net.createServer(function(socket){
-	var client = makeClient(socket);
+	socket.on('disconnect', disconnectSocket);
+	socket.on('end', closeSocket);
+	socket.on('readable', readSocket);
+	socket.on('error', errorSocket);
 	socket.write('{"req":"whoareyou"}');
+});
+server.listen(12800, function(){
+	console.log('server bound');
 });
 
 var disconnectSocket = function(){
@@ -59,13 +70,23 @@ var readSocket = function(){
 	}
 }
 
+var createInstance = function(name){
+	exec('xen create ' + name, function(err, stdout, stderr){
+		if(err){
+			console.log(err);
+		}
+		console.log(stdout);
+	});
+}
+var closeInstance = function(name){
+}
 
 
 var mainLoop = function(){
 	var cpu = 0;
 	var memory = 0;
 	_.each(clientArray, function(e, i, a){
-		if(e.client === undefined) return;
+		if(e.client === null) return;
 	});
 }
 var loopHandle = setInterval(mainLoop, config.interval);
