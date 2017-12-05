@@ -29,12 +29,28 @@ server.listen(12800, function(){
 });
 
 var disconnectSocket = function(){
+	var self = this;
+	console.log('client disconnected.');
+	if(self.vmid !== undefined){
+		console(self.vmid + ' is disconnected');
+		closeInstance(self.vmid);
+	}
 }
 var closeSocket = function(){
 	var self = this;
 	cosole.log('client Closed Socket. vm id : ' + self.vmid);
+	if(self.vmid !== undefined){
+		console(self.vmid + ' is disconnected');
+		closeInstance(self.vmid);
+	}
 }
-var errorSocket = function(){
+var errorSocket = function(exc){
+	var self = this;
+	if(self.vmid === undefined) return;
+	
+	console(self.vmid + ' has error');
+	console.log(exc);
+	closeInstance(self.vmid);
 }
 var readSocket = function(){
 	var self = this;
@@ -63,6 +79,8 @@ var readSocket = function(){
 		case 'whoami':
 			clientArray[jsonobj.name].socket = self;
 			self.parentobj = clientArray[jsonobj.name];
+			self.vmid = jsonobj.name;
+			self.parentobj.state == 'working';
 			break;
 		default:
 			break;
@@ -70,13 +88,20 @@ var readSocket = function(){
 }
 
 var createInstance = function(name){
+	console.log('creating new VM Instance');
+	clientArray[name].state = 'booting';
 	if(clientArray[name].state != 'stop') return;
-	exec('xen create ' + name, function(err, stdout, stderr){
+	clientArray[name].refresh = Date.now();
+	exec('xen create /etc/xen/' + name + '.cfg', function(err, stdout, stderr){
+		console.log('start booting');
 		if(err){
+			exec('xen destroy ' + name, function(a, b, c){
+				clientArray[name].state = 'stop';
+			});
+			
 			console.log(err);
 			return;
 		}
-		clientArray[name].state = 'booting';
 		console.log(stdout);
 	});
 }
@@ -87,6 +112,7 @@ var closeInstance = function(name){
 		}
 		console.log(stdout);
 		clientArray[name].state = 'stop';
+		clientArray[name].socket.vmid = undefined;
 		clientArray[name].socket = null;
 		clientARray[name].lastusage = {};
 	});
@@ -94,18 +120,26 @@ var closeInstance = function(name){
 
 
 var mainLoop = function(){
+	console.log('\033c');
 	var cpu = 0;
 	var memory = 0;
 	var livecount = 0;
+	var cannotmake = false;
 	_.each(clientArray, function(e, i, a){
-		if(e.client === null) return;
+		console.log(e.name + ' : ' + e.state);
+		if(e.state == 'stop') return;
+		if(e.state == 'booting') cannotmake = true;
 		livecount++;
-		cpu+= _.reduce(e.lastusage, function(val, data){
+		var vmcpu = _.reduce(e.lastusage, function(val, data){
 			return (data.cpu/e.lastusage.length) + val;
 		}, 0);
-		memory+= _.reduce(e.lastusage, function(val, data){
+		var vmmemory = _.reduce(e.lastusage, function(val, data){
 			return (data.mem/e.lastusage.length) + val;
 		}, 0);
+		console.log('cpu : ' + vmcpu);
+		console.log('memory : ' + vmmemory);
+		cpu+= vmcpu;
+		memory += vmmemory;
 	});
 	if(livecount == 0){
 		createInstance(config.vmList[0]);
@@ -117,23 +151,32 @@ var mainLoop = function(){
 	var closeflag = false;
 	var makeflag = false;
 
-	if(cpu < config.cpu-low && memory < memory-high){
+	if(cpu < config.cpulow && memory < config.memoryhigh){
 		closeflag = true;
 	}
-	if(memory < config.memory-low && cpu < cpu-high){
+	if(memory < config.memorylow && cpu < config.cpuhigh){
 		closeflag = true;
 	}
-	if(cpu > config.cpu-high || memory > config.memory-high){
+	if(cpu > config.cpuhigh || memory > config.memoryhigh){
 		makeflag = true;
 	}
-	if(makeflag){
+	if(makeflag && !cannotmake){
 		if(livecount == 6) return;
-		var notworking = _.filter(
+		var notworking = _.find(clientArray, function(e){
+			return e.state == 'stop';
+		});
+		
+		createInstance(notworking.name);
+		return;
 	}
 	if(closeflag){
 		if(livecount <2) return;
+		var livevm = _.filter(clientArray, function(e){
+			return e.state == 'working';
+		});
+		closeInstance(_.last(livevm).name);
 	}
 }
-//var loopHandle = setInterval(mainLoop, config.interval);
+var loopHandle = setInterval(mainLoop, config.interval);
 
-closeInstance('vm0');
+//closeInstance('vm0');

@@ -1,4 +1,4 @@
-
+var rand = Math.random;
 var workMain = function(){
 	var i1;
 	var i2;

@@ -1,4 +1,5 @@
 {
 	"server":"192.168.25.9",
-	"refreshrate":2000
+	"refreshrate":2000,
+	"name":"vm0"
 }
