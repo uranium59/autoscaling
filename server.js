@@ -80,7 +80,7 @@ var readSocket = function(){
 			clientArray[jsonobj.name].socket = self;
 			self.parentobj = clientArray[jsonobj.name];
 			self.vmid = jsonobj.name;
-			self.parentobj.state == 'working';
+			self.parentobj.state = 'working';
 			break;
 		default:
 			break;
@@ -89,10 +89,11 @@ var readSocket = function(){
 
 var createInstance = function(name){
 	console.log('creating new VM Instance');
-	clientArray[name].state = 'booting';
 	if(clientArray[name].state != 'stop') return;
+	clientArray[name].state = 'booting';
 	clientArray[name].refresh = Date.now();
 	exec('xen create /etc/xen/' + name + '.cfg', function(err, stdout, stderr){
+		logWrite('virtual machine start : ' + name);
 		console.log('start booting');
 		if(err){
 			exec('xen destroy ' + name, function(a, b, c){
@@ -106,6 +107,7 @@ var createInstance = function(name){
 	});
 }
 var closeInstance = function(name){
+	logWrite('virtual machine shutdown : ' + name);
 	exec('xen shutdown ' + name, function(err, stdout, stderr){
 		if(err){
 			console.log(err);
@@ -131,10 +133,10 @@ var mainLoop = function(){
 		if(e.state == 'booting') cannotmake = true;
 		livecount++;
 		var vmcpu = _.reduce(e.lastusage, function(val, data){
-			return (data.cpu/e.lastusage.length) + val;
+			return (data.cpu/5) + val;
 		}, 0);
 		var vmmemory = _.reduce(e.lastusage, function(val, data){
-			return (data.mem/e.lastusage.length) + val;
+			return (data.mem/5) + val;
 		}, 0);
 		console.log('cpu : ' + vmcpu);
 		console.log('memory : ' + vmmemory);
@@ -179,4 +181,7 @@ var mainLoop = function(){
 }
 var loopHandle = setInterval(mainLoop, config.interval);
 
+var logWrite = function(data){
+	fs.writeFileSync(__dirname + '/server.log', data + '\n');
+}
 //closeInstance('vm0');

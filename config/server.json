@@ -1,11 +1,14 @@
 {
-	"interval":2000,
+	"interval":1000,
 	"vmCount":6,
-	"cpulow":10,
+	"cpulow":20,
 	"cpuhigh":70,
 	"memorylow":50,
 	"memoryhigh":90,
 	"vmList":[
-		"vm0"
+		"vm0",
+		"vm1",
+		"vm2",
+		"vm3"
 	]
 }
