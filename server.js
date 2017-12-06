@@ -130,7 +130,10 @@ var mainLoop = function(){
 	_.each(clientArray, function(e, i, a){
 		console.log(e.name + ' : ' + e.state);
 		if(e.state == 'stop') return;
-		if(e.state == 'booting') cannotmake = true;
+		if(e.state == 'booting'){
+			cannotmake = true;
+			return;
+		}
 		livecount++;
 		var vmcpu = _.reduce(e.lastusage, function(val, data){
 			return (data.cpu/5) + val;
@@ -163,7 +166,7 @@ var mainLoop = function(){
 		makeflag = true;
 	}
 	if(makeflag && !cannotmake){
-		if(livecount == 6) return;
+		if(livecount == 4) return;
 		var notworking = _.find(clientArray, function(e){
 			return e.state == 'stop';
 		});
@@ -171,7 +174,7 @@ var mainLoop = function(){
 		createInstance(notworking.name);
 		return;
 	}
-	if(closeflag){
+	if(closeflag && !makeflag){
 		if(livecount <2) return;
 		var livevm = _.filter(clientArray, function(e){
 			return e.state == 'working';
