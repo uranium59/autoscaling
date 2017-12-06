@@ -28,18 +28,18 @@ var resourceCheck = function(){
 	var memusage = 100 - (os.freemem() / os.totalmem() * 100);
 	var cpuusage = 0;
 	var cpus = os.cpus();
-	_.each(cpus, function(e, i, a){
+	cpus.forEach(function(e, i, a){
 		var tu = e.times.user + e.times.nice + e.times.sys;
 		var tt = tu + e.times.idle;
-		usage += (tu/tt*100);
+		cpuusage += (tu/tt*100);
 	});
-	usage /= cpus.length;
+	cpuusage /= cpus.length;
 	var sendobj = {
-		req :'refresh';
-		cpu :cpuusage;
-		mem :memusage;
+		req :'refresh',
+		cpu :cpuusage,
+		mem :memusage,
 	};
-	client.write(JSON.Stringify(sendobj));
+	client.write(JSON.stringify(sendobj));
 }
 
 setInterval(function(){resourceCheck();}, 200);

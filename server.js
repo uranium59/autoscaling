@@ -32,15 +32,15 @@ var disconnectSocket = function(){
 	var self = this;
 	console.log('client disconnected.');
 	if(self.vmid !== undefined){
-		console(self.vmid + ' is disconnected');
+		console.log(self.vmid + ' is disconnected');
 		closeInstance(self.vmid);
 	}
 }
 var closeSocket = function(){
 	var self = this;
-	cosole.log('client Closed Socket. vm id : ' + self.vmid);
+	console.log('client Closed Socket. vm id : ' + self.vmid);
 	if(self.vmid !== undefined){
-		console(self.vmid + ' is disconnected');
+		console.log(self.vmid + ' is disconnected');
 		closeInstance(self.vmid);
 	}
 }
@@ -48,7 +48,7 @@ var errorSocket = function(exc){
 	var self = this;
 	if(self.vmid === undefined) return;
 	
-	console(self.vmid + ' has error');
+	console.log(self.vmid + ' has error');
 	console.log(exc);
 	closeInstance(self.vmid);
 }
@@ -114,7 +114,7 @@ var closeInstance = function(name){
 		clientArray[name].state = 'stop';
 		clientArray[name].socket.vmid = undefined;
 		clientArray[name].socket = null;
-		clientARray[name].lastusage = {};
+		clientArray[name].lastusage = [];
 	});
 }
 
