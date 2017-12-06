@@ -182,6 +182,6 @@ var mainLoop = function(){
 var loopHandle = setInterval(mainLoop, config.interval);
 
 var logWrite = function(data){
-	fs.writeFileSync(__dirname + '/server.log', data + '\n');
+	fs.writeFileSync(__dirname + '/log/server.log', data + '\n');
 }
 //closeInstance('vm0');
