@@ -1,7 +1,7 @@
 var rand = Math.random;
 var workMain = function(){
-	var i1 = rand() * 2000;
-	var i2 = rand() * 2000;
+	var i1 = rand() * 100000;
+	var i2 = rand() * 100000;
 	var arr = new Array(i2);
 	for(var i = 0; i < i1; ++i){
 		for(var j = 0; j < i2; ++j{
@@ -10,4 +10,4 @@ var workMain = function(){
 	}
 }
 
-setInterval(workMain, 2);
+setInterval(workMain, 1);
